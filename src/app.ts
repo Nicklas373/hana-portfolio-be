@@ -16,6 +16,7 @@ import { logger } from "./lib/pino/config";
 const app = express();
 
 // Init app configuration
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: process.env.CORS_ORIGINS?.split(",") || [],
