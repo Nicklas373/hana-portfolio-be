@@ -1,0 +1,142 @@
+permissions:
+  contents: read
+
+name: "HANA Portfolio Backend Services [SIT]"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  portfolio:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Run coverage
+        run: npm run test:coverage
+
+      - name: NPM Build Package
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          CONTAINER_NAME: HANA_PORTFOLIO_BE_[SIT]
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-backend/actions/workflows/docker-sit-env.yml
+          IMAGE_NAME: portfolio_backend_build_image
+          STATUS: Build HANA Portfolio Backend NPM Package
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+          ENV: SIT
+        run: |
+          chmod +x ./module/bash/docker-build-info.sh
+            bash ./module/bash/docker-build-info.sh
+
+      - name: Build project
+        run: npm run build
+
+      - name: Docker Image Build Notification
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          CONTAINER_NAME: HANA_PORTFOLIO_BE_[SIT]
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio/actions/workflows/docker-sit-env.yml
+          IMAGE_NAME: portfolio_be_build_image
+          STATUS: Build HANA Portfolio Backend Docker Image
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+          ENV: SIT
+        run: |
+          chmod +x ./module/bash/docker-build-info.sh
+            bash ./module/bash/docker-build-info.sh
+
+      - name: Build HANA Portfolio Backend Docker Image
+        run: |
+          docker build \
+            -t nicklas373/hana-portfolio-be-services-sit:1.0.0 \
+            -f Dockerfile/Dockerfile.hana-portfolio.sit \
+            .
+          mkdir -p portfolio_be_image
+          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.0
+
+      - name: Load Docker Image Notifications
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          CONTAINER_NAME: HANA_PORTFOLIO_[SIT]
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit-env.yml
+          IMAGE_NAME: portfolio_be_build_image
+          STATUS: Load HANA Portfolio Docker Image
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+          ENV: SIT
+        run: |
+          chmod +x ./module/bash/docker-build-info.sh
+          bash ./module/bash/docker-build-info.sh
+
+      - name: Load Docker Images
+        run: docker load -i portfolio_be_image/portfolio_be_image.tar
+
+      - name: Push Docker Image Notifications
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          CONTAINER_NAME: HANA_PORTFOLIO_[SIT]
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit-env.yml
+          IMAGE_NAME: portfolio_be_build_image
+          STATUS: Push HANA Portfolio Docker Image
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+          ENV: SIT
+        run: |
+          chmod +x ./module/bash/docker-build-info.sh
+          bash ./module/bash/docker-build-info.sh
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: nicklas373
+          password: ${{ secrets.DOCKER_PAT }}
+
+      - name: Push Docker Image to Docker Hub
+        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.0
+
+      - name: Status Notifications
+        if: always()
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          CONTAINER_NAME: HANA_PORTFOLIO_[SIT]
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit-env.yml
+          IMAGE_NAME: portfolio_be_build_image
+          STATUS: "Build ${{ job.status }}"
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+          ENV: SIT
+        run: |
+          chmod +x ./module/bash/docker-build-info.sh
+          bash ./module/bash/docker-build-info.sh

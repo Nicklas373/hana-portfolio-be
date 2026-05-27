@@ -1,0 +1,43 @@
+# Use node:lts-alpine3.23 as builder image
+FROM node:lts-alpine3.23 AS builder
+
+# Configure image maintainer
+LABEL maintainer="Nicklas373 <herlambangdicky5@gmail.com>"
+LABEL version="1.0.0"
+LABEL description="Docker container for https://portfolio.hana-ci.com/dickyherlambang backend"
+
+# Configure work directory
+WORKDIR /app
+
+# Configure initial package
+COPY package*.json ./
+
+# Installing initial package
+RUN npm ci
+
+# Copy other data
+COPY . .
+
+# Compiling node packages
+RUN npm run build
+
+# Use dhi.io/node:26-alpine3.23 as base image
+FROM dhi.io/node:26-alpine3.23 
+
+# Configure work directory
+WORKDIR /app
+
+# Configure Environment
+ENV NODE_ENV=development
+
+# Copying data from builder stage
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.env ./.env.local
+
+# Expose port
+EXPOSE 3001
+
+# Start Next JS
+CMD ["node", "dist/server.js"]
