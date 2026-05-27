@@ -28,7 +28,7 @@ FROM dhi.io/node:26-alpine3.23
 WORKDIR /app
 
 # Configure Environment
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
 # Copying data from builder stage
 COPY --from=builder /app/node_modules ./node_modules

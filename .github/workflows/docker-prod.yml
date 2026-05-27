@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repoPRODory
         uses: actions/checkout@v6
 
       - name: Setup Node.js
@@ -36,14 +36,14 @@ jobs:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           CONTAINER_NAME: HANA_PORTFOLIO_BE_[PROD]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-backend/actions/workflows/docker-sit-env.yml
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-backend/actions/workflows/docker-prod-env.yml
           IMAGE_NAME: portfolio_backend_build_image
           STATUS: Build HANA Portfolio Backend NPM Package
           COMMIT_SHA: ${{ github.sha }}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
-          ENV: SIT
+          ENV: PROD
         run: |
           chmod +x ./module/bash/docker-build-info.sh
             bash ./module/bash/docker-build-info.sh
@@ -63,7 +63,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
-          ENV: SIT
+          ENV: PROD
         run: |
           chmod +x ./module/bash/docker-build-info.sh
             bash ./module/bash/docker-build-info.sh
@@ -89,7 +89,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
-          ENV: SIT
+          ENV: PROD
         run: |
           chmod +x ./module/bash/docker-build-info.sh
           bash ./module/bash/docker-build-info.sh
@@ -109,7 +109,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
-          ENV: SIT
+          ENV: PROD
         run: |
           chmod +x ./module/bash/docker-build-info.sh
           bash ./module/bash/docker-build-info.sh
@@ -136,7 +136,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
-          ENV: SIT
+          ENV: PROD
         run: |
           chmod +x ./module/bash/docker-build-info.sh
           bash ./module/bash/docker-build-info.sh
