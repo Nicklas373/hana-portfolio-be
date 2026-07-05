@@ -18,16 +18,12 @@ const initRedis = (): Redis => {
     db: Number(process.env.REDIS_DB),
 
     retryStrategy: (times: number) => {
-      if (times > 6) {
-        console.error(
-          `Failed to connect to hana-portfolio-redis after ${times} attempts`,
-        );
-        return null;
-      }
       const delay = Math.min(times * 200, 4000);
-      console.warn(
-        `hana-portfolio-redis retry attempt ${times}, waiting ${delay}ms...`,
-      );
+      if (times > 10) {
+        console.error(
+          `hana-portfolio-redis connection attempt ${times} failed. Retrying in ${delay}ms...`,
+        );
+      }
       return delay;
     },
   });

@@ -1,6 +1,7 @@
 import { rateLimit } from "express-rate-limit";
 import { RedisReply, RedisStore } from "rate-limit-redis";
 import redis from "../lib/redis/config";
+import { errorFormatter } from "../lib/helper";
 
 const createRateLimiter = (options: {
   windowMs: number;
@@ -9,8 +10,17 @@ const createRateLimiter = (options: {
 }) =>
   rateLimit({
     store: new RedisStore({
-      sendCommand: (command: string, ...args: any[]) =>
-        redis.call(command, ...args) as Promise<RedisReply>,
+      sendCommand: async (
+        command: string,
+        ...args: (string | number | Buffer)[]
+      ) => {
+        try {
+          return (await redis.call(command, ...args)) as Promise<RedisReply>;
+        } catch (err) {
+          console.error(`Redis Rate Limiter Error: ${errorFormatter(err)}`);
+          throw err;
+        }
+      },
     }),
     windowMs: options.windowMs,
     limit: options.limit,
