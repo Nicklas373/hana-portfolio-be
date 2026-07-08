@@ -1,9 +1,9 @@
-# Use node:lts-alpine3.23 as builder image
-FROM node:lts-alpine3.23 AS builder
+# Use node:lts-alpine3.24 as builder image
+FROM node:lts-alpine3.24 AS builder
 
 # Configure image maintainer
 LABEL maintainer="Nicklas373 <herlambangdicky5@gmail.com>"
-LABEL version="1.0.0"
+LABEL version="1.0.2"
 LABEL description="Docker container for https://portfolio.hana-ci.com/dickyherlambang backend"
 
 # Configure work directory
@@ -21,8 +21,8 @@ COPY . .
 # Compiling node packages
 RUN npm run build
 
-# Use dhi.io/node:26-alpine3.23 as base image
-FROM dhi.io/node:26-alpine3.23 
+# Use dhi.io/node:26-alpine3.24 as base image
+FROM dhi.io/node:26-alpine3.24 
 
 # Configure work directory
 WORKDIR /app

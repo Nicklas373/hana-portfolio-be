@@ -5,6 +5,13 @@ services:
     cpus: 1.0
     mem_limit: 512M
     mem_reservation: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hana-portfolio-be.rule=Host(`portfolio-api.localhost`)"
+      - "traefik.http.routers.hana-portfolio-be.entrypoints=web"
+      - "traefik.http.routers.hana-portfolio-be.service=hana-portfolio-be@docker"
+      - "traefik.http.services.hana-portfolio-be.loadbalancer.server.scheme=http"
+      - "traefik.http.services.hana-portfolio-be.loadbalancer.server.port=3001"
     build:
       context: .
       dockerfile: Dockerfile/Dockerfile.hana-portfolio.sit
@@ -45,7 +52,7 @@ services:
     mem_limit: 256M
     mem_reservation: 128M
     ports:
-      - "6379:6379"
+      - "8585:6379"
     depends_on:
       - hana-portfolio-db-sit-services
     volumes:
@@ -64,6 +71,7 @@ services:
 networks:
   hana-network:
     name: hana-network
+    external: true
 volumes:
   hana-portfolio-db-sit-services:
     driver: local
