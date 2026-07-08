@@ -13,8 +13,9 @@ vi.mock("../src/lib/model/portfolio", () => ({
 }));
 
 vi.mock("../src/middleware/rateLimiter", () => ({
-  crudRateLimiter: (req: any, res: any, next: any) => next(),
-  globalRequestRateLimiter: (req: any, res: any, next: any) => next(),
+  crudRateLimiter: (req: Request, res: Response, next: NextFunction) => next(),
+  globalRequestRateLimiter: (req: Request, res: Response, next: NextFunction) =>
+    next(),
 }));
 
 import request from "supertest";
@@ -36,6 +37,7 @@ import {
 } from "../src/lib/model/portfolio";
 import { contact } from "../src/constant/contact";
 import { experience, experienceList } from "../src/constant/experience";
+import { NextFunction } from "express";
 
 const mockContactData: contactMap[] = contact;
 const mockExperienceData: experienceMap[] = experience;
@@ -48,10 +50,10 @@ describe(`GET /api/v1/contact`, () => {
   });
 
   it("Mock API Get Contact Data", async () => {
-    (getContact as any).mockResolvedValue(mockContactData);
+    vi.mocked(getContact).mockResolvedValue(mockContactData);
 
     const response = await request(app)
-      .get("/api/v1/contact")
+      .get(`${process.env.BASE_URL}/api/v1/contact`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(200);
@@ -66,10 +68,10 @@ describe(`GET /api/v1/contact`, () => {
   });
 
   it("Mock API error response", async () => {
-    (getContact as any).mockRejectedValue(new Error("Internal server error"));
+    vi.mocked(getContact).mockRejectedValue(new Error("Internal server error"));
 
     const response = await request(app)
-      .get("/api/v1/contact")
+      .get(`${process.env.BASE_URL}/api/v1/contact`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
@@ -83,10 +85,10 @@ describe(`GET /api/v1/experience`, () => {
   });
 
   it("Mock API Get Experience Data", async () => {
-    (getExperience as any).mockResolvedValue(mockExperienceData);
+    vi.mocked(getExperience).mockResolvedValue(mockExperienceData);
 
     const response = await request(app)
-      .get("/api/v1/experience")
+      .get(`${process.env.BASE_URL}/api/v1/experience`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(200);
@@ -104,12 +106,12 @@ describe(`GET /api/v1/experience`, () => {
   });
 
   it("Mock API error response", async () => {
-    (getExperience as any).mockRejectedValue(
+    vi.mocked(getExperience).mockRejectedValue(
       new Error("Internal server error"),
     );
 
     const response = await request(app)
-      .get("/api/v1/experience")
+      .get(`${process.env.BASE_URL}/api/v1/experience`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
@@ -117,16 +119,16 @@ describe(`GET /api/v1/experience`, () => {
   });
 });
 
-describe(`GET /api/v1/experienceList`, () => {
+describe(`GET /api/v1/experience/list`, () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it("Mock API Get Experience List Data", async () => {
-    (getExperienceList as any).mockResolvedValue(mockExperienceListData);
+    vi.mocked(getExperienceList).mockResolvedValue(mockExperienceListData);
 
     const response = await request(app)
-      .get("/api/v1/experienceList?company=myCompany")
+      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=myCompany`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(200);
@@ -141,12 +143,12 @@ describe(`GET /api/v1/experienceList`, () => {
   });
 
   it("Mock API empty value parameters response", async () => {
-    (getExperienceList as any).mockRejectedValue(
+    vi.mocked(getExperienceList).mockRejectedValue(
       new Error("Internal server error"),
     );
 
     const response = await request(app)
-      .get("/api/v1/experienceList?company=")
+      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(400);
@@ -155,12 +157,12 @@ describe(`GET /api/v1/experienceList`, () => {
   });
 
   it("Mock API invalid type data parameters response", async () => {
-    (getExperienceList as any).mockRejectedValue(
+    vi.mocked(getExperienceList).mockRejectedValue(
       new Error("Internal server error"),
     );
 
     const response = await request(app)
-      .get("/api/v1/experienceList?company=a&company=b")
+      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=a&company=b`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(400);
@@ -171,12 +173,12 @@ describe(`GET /api/v1/experienceList`, () => {
   });
 
   it("Mock API error response", async () => {
-    (getExperienceList as any).mockRejectedValue(
+    vi.mocked(getExperienceList).mockRejectedValue(
       new Error("Internal server error"),
     );
 
     const response = await request(app)
-      .get("/api/v1/experienceList?company=myCompany")
+      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=myCompany`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
@@ -190,10 +192,10 @@ describe(`GET /api/v1/project`, () => {
   });
 
   it("Mock API Get Project Data", async () => {
-    (getProject as any).mockResolvedValue(mockProjectData);
+    vi.mocked(getProject).mockResolvedValue(mockProjectData);
 
     const response = await request(app)
-      .get("/api/v1/project")
+      .get(`${process.env.BASE_URL}/api/v1/project`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(200);
@@ -210,10 +212,10 @@ describe(`GET /api/v1/project`, () => {
   });
 
   it("Mock API error response", async () => {
-    (getProject as any).mockRejectedValue(new Error("Internal server error"));
+    vi.mocked(getProject).mockRejectedValue(new Error("Internal server error"));
 
     const response = await request(app)
-      .get("/api/v1/project")
+      .get(`${process.env.BASE_URL}/api/v1/project`)
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
@@ -240,16 +242,18 @@ describe(`POST /api/v1/contact`, () => {
       } as Response),
     );
 
-    (insertContact as any).mockResolvedValue(mockContactInsertPayload);
+    vi.mocked(insertContact).mockResolvedValue([mockContactInsertPayload]);
 
     const response = await request(app)
-      .post("/api/v1/contact")
+      .post(`${process.env.BASE_URL}/api/v1/contact`)
       .send(mockContactData[0])
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
-    expect(response.body.data.contact).toMatchObject(mockContactInsertPayload);
+    expect(response.body.data.contact).toMatchObject([
+      mockContactInsertPayload,
+    ]);
   });
 
   it("Mock API error response", async () => {
@@ -262,12 +266,12 @@ describe(`POST /api/v1/contact`, () => {
       } as Response),
     );
 
-    (insertContact as any).mockRejectedValue(
+    vi.mocked(insertContact).mockRejectedValue(
       new Error("Internal server error"),
     );
 
     const response = await request(app)
-      .post("/api/v1/contact")
+      .post(`${process.env.BASE_URL}/api/v1/contact`)
       .send(mockContactData[0])
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 

@@ -1,4 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
+import type { QueryResult } from "pg";
 import { contact } from "../src/constant/contact";
 import { experience, experienceList } from "../src/constant/experience";
 import { projects } from "../src/constant/projects";
@@ -38,9 +47,9 @@ describe("getContact", () => {
   });
 
   it("Mock contact data", async () => {
-    vi.mocked(portfolioPool.query).mockResolvedValue({
+    vi.mocked(portfolioPool.query as unknown as Mock).mockResolvedValue({
       rows: mockContactData,
-    } as any);
+    } as QueryResult<contactMap>);
 
     const result = await getContact();
     expect(result).toEqual(mockContactData);
@@ -54,7 +63,7 @@ describe("getContact", () => {
   });
 
   it("Mock contact error data", async () => {
-    vi.mocked(portfolioPool.query).mockRejectedValue(
+    vi.mocked(portfolioPool.query as unknown as Mock).mockRejectedValue(
       new Error("failed to fetch contact"),
     );
     await expect(getContact()).rejects.toThrow("failed to fetch contact");
@@ -71,9 +80,9 @@ describe("getExperience", () => {
   });
 
   it("Mock experience data", async () => {
-    vi.mocked(portfolioPool.query).mockResolvedValue({
+    vi.mocked(portfolioPool.query as unknown as Mock).mockResolvedValue({
       rows: mockExperienceData,
-    } as any);
+    } as QueryResult<experienceMap>);
 
     const result = await getExperience();
     expect(result).toEqual(mockExperienceData);
@@ -91,7 +100,7 @@ describe("getExperience", () => {
   });
 
   it("Mock experience error data", async () => {
-    vi.mocked(portfolioPool.query).mockRejectedValue(
+    vi.mocked(portfolioPool.query as unknown as Mock).mockRejectedValue(
       new Error("failed to fetch experience"),
     );
     await expect(getExperience()).rejects.toThrow("failed to fetch experience");
@@ -108,9 +117,9 @@ describe("getExperienceList", () => {
   });
 
   it("Mock experience list data", async () => {
-    vi.mocked(portfolioPool.query).mockResolvedValue({
+    vi.mocked(portfolioPool.query as unknown as Mock).mockResolvedValue({
       rows: mockExperienceListData,
-    } as any);
+    } as QueryResult<experienceListMap>);
 
     const result = await getExperienceList("myCompanyName");
     expect(result).toEqual(mockExperienceListData);
@@ -125,7 +134,7 @@ describe("getExperienceList", () => {
   });
 
   it("Mock experience list error data", async () => {
-    vi.mocked(portfolioPool.query).mockRejectedValue(
+    vi.mocked(portfolioPool.query as unknown as Mock).mockRejectedValue(
       new Error("failed to fetch experience list"),
     );
     await expect(getExperienceList("myCompanyName")).rejects.toThrow(
@@ -144,9 +153,9 @@ describe("getProjects", () => {
   });
 
   it("Mock projects data", async () => {
-    vi.mocked(portfolioPool.query).mockResolvedValue({
+    vi.mocked(portfolioPool.query as unknown as Mock).mockResolvedValue({
       rows: mockProjectData,
-    } as any);
+    } as QueryResult<projectMap>);
 
     const result = await getProject();
     expect(result).toEqual(mockProjectData);
@@ -154,6 +163,7 @@ describe("getProjects", () => {
       name: expect.any(String),
       description: expect.any(String),
       techstack: expect.any(Array),
+      link: expect.any(String),
       source: expect.any(String),
       icons: expect.any(String),
     });
@@ -162,7 +172,7 @@ describe("getProjects", () => {
   });
 
   it("Mock projects error data", async () => {
-    vi.mocked(portfolioPool.query).mockRejectedValue(
+    vi.mocked(portfolioPool.query as unknown as Mock).mockRejectedValue(
       new Error("failed to fetch project"),
     );
     await expect(getProject()).rejects.toThrow("failed to fetch project");
@@ -184,9 +194,9 @@ describe("insertContact", () => {
   const mockContactResponsePayload = ["myName", "myEmail", "myMessage"];
 
   it("Mock insert contact data", async () => {
-    vi.mocked(portfolioPool.query).mockResolvedValue({
+    vi.mocked(portfolioPool.query as unknown as Mock).mockResolvedValue({
       rows: [mockContactInsertPayload],
-    } as any);
+    } as QueryResult<{ messageid: string }>);
 
     const result = await insertContact(
       mockContactResponsePayload[0],
@@ -202,7 +212,7 @@ describe("insertContact", () => {
   });
 
   it("Mock insert contact error data", async () => {
-    vi.mocked(portfolioPool.query).mockRejectedValue(
+    vi.mocked(portfolioPool.query as unknown as Mock).mockRejectedValue(
       new Error("failed to insert contact"),
     );
     await expect(
