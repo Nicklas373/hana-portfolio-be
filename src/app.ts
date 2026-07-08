@@ -3,7 +3,7 @@ import crypto from "crypto";
 import express from "express";
 import contact from "./routes/contact";
 import experience from "./routes/experience";
-import experienceList from "./routes/experienceList";
+import experiencelist from "./routes/experiencelist";
 import projects from "./routes/project";
 import {
   crudRateLimiter,
@@ -14,6 +14,7 @@ import { logger } from "./lib/pino/config";
 
 // Init express JS
 const app = express();
+const baseUrl = process.env.BASE_URL;
 
 // Init app configuration
 app.set("trust proxy", 1);
@@ -36,11 +37,15 @@ app.use(
 );
 
 // Init app route
-app.use("/api/v1/contact", crudRateLimiter, contact);
-app.use("/api/v1/experience", globalRequestRateLimiter, experience);
-app.use("/api/v1/experienceList", globalRequestRateLimiter, experienceList);
-app.use("/api/v1/project", globalRequestRateLimiter, projects);
-app.get("/api/v1/health", (req, res) => {
+app.use(`${baseUrl}/api/v1/contact`, crudRateLimiter, contact);
+app.use(`${baseUrl}/api/v1/experience`, globalRequestRateLimiter, experience);
+app.use(
+  `${baseUrl}/api/v1/experience/list`,
+  globalRequestRateLimiter,
+  experiencelist,
+);
+app.use(`${baseUrl}/api/v1/project`, globalRequestRateLimiter, projects);
+app.get(`${baseUrl}/api/v1/health`, (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Healthy upstream",
