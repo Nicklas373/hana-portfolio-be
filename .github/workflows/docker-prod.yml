@@ -48,9 +48,6 @@ jobs:
           chmod +x ./module/bash/docker-build-info.sh
             bash ./module/bash/docker-build-info.sh
 
-      - name: Build project
-        run: npm run build
-
       - name: Docker Image Build Notification
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
