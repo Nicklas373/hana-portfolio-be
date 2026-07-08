@@ -3,6 +3,7 @@ import crypto from "crypto";
 import express from "express";
 import contact from "./routes/contact";
 import experience from "./routes/experience";
+import list from "./routes/experience";
 import projects from "./routes/project";
 import {
   crudRateLimiter,
@@ -10,7 +11,6 @@ import {
 } from "./middleware/rateLimiter";
 import pinoHttp from "pino-http";
 import { logger } from "./lib/pino/config";
-import experiencelist from "./routes/experiencelist";
 
 // Init express JS
 const app = express();
@@ -39,11 +39,7 @@ app.use(
 // Init app route
 app.use(`${baseUrl}/api/v1/contact`, crudRateLimiter, contact);
 app.use(`${baseUrl}/api/v1/experience`, globalRequestRateLimiter, experience);
-app.use(
-  `${baseUrl}/api/v1/experience/list`,
-  globalRequestRateLimiter,
-  experiencelist,
-);
+app.use(`${baseUrl}/api/v1/experience/list`, globalRequestRateLimiter, list);
 app.use(`${baseUrl}/api/v1/project`, globalRequestRateLimiter, projects);
 app.get(`${baseUrl}/api/v1/health`, (req, res) => {
   return res.status(200).json({
