@@ -68,11 +68,11 @@ jobs:
       - name: Build HANA Portfolio Backend Docker Image
         run: |
           docker build \
-            -t nicklas373/hana-portfolio-be-services-sit:1.0.0 \
+            -t nicklas373/hana-portfolio-be-services-sit:1.0.2 \
             -f Dockerfile/Dockerfile.hana-portfolio.sit \
             .
           mkdir -p portfolio_be_image
-          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.0
+          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.2
 
       - name: Load Docker Image Notifications
         env:
@@ -118,7 +118,7 @@ jobs:
           password: ${{ secrets.DOCKER_PAT }}
 
       - name: Push Docker Image to Docker Hub
-        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.0
+        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.2
 
       - name: Status Notifications
         if: always()
