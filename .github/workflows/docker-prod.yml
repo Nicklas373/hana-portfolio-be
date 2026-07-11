@@ -4,9 +4,7 @@ permissions:
 name: "HANA Portfolio Backend Services [PROD]"
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   portfolio:

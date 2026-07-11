@@ -2,6 +2,9 @@
 
 A lightweight and secure REST API built with Express.js, TypeScript, and PostgreSQL for [HANA Portfolio](https://portfolio.hana-ci.com/dickyherlambang).
 
+[![HANA Portfolio Backend Services [PROD]](https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-prod.yml/badge.svg?branch=master)](https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-prod.yml)
+[![HANA Portfolio Backend Services [SIT]](https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit.yml/badge.svg)](https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit.yml)
+
 ---
 
 ## Features
