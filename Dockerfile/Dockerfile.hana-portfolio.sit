@@ -3,7 +3,7 @@ FROM node:lts-alpine3.24 AS builder
 
 # Configure image maintainer
 LABEL maintainer="Nicklas373 <herlambangdicky5@gmail.com>"
-LABEL version="1.0.2"
+LABEL version="1.0.5"
 LABEL description="Docker container for https://portfolio.hana-ci.com/dickyherlambang backend"
 
 # Configure work directory
@@ -22,19 +22,19 @@ COPY . .
 RUN npm run build
 
 # Use dhi.io/node:26-alpine3.24 as base image
-FROM dhi.io/node:26-alpine3.24 
+FROM node:lts-alpine3.24
 
 # Configure work directory
 WORKDIR /app
 
 # Configure Environment
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
 # Copying data from builder stage
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.env ./.env.local
+COPY --from=builder /app/.env ./.env
 
 # Expose port
 EXPOSE 3001

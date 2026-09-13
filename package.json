@@ -1,6 +1,6 @@
 {
-  "name": "hana-portfolio-be",
-  "version": "1.0.3",
+  "name": "hana-portfolio-api",
+  "version": "1.0.5",
   "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",

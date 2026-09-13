@@ -16,6 +16,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Install MinIO Client
+        run: |
+          curl -fsSL \
+            https://dl.min.io/client/mc/release/linux-amd64/mc \
+            -o mc
+
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc
+
+      - name: Configure MinIO
+        env:
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          mc alias set minio \
+            "$MINIO_ENDPOINT" \
+            "$MINIO_ACCESS_KEY" \
+            "$MINIO_SECRET_KEY"
+
+      - name: Download env
+        run: |
+          rm .env && mc cp \
+            minio/hana-secrets/portfolio/.env.sit \
+            .env
+
+          chmod 600 .env
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -68,11 +96,11 @@ jobs:
       - name: Build HANA Portfolio Backend Docker Image
         run: |
           docker build \
-            -t nicklas373/hana-portfolio-be-services-sit:1.0.2 \
-            -f Dockerfile/Dockerfile.hana-portfolio.sit \
+            -t nicklas373/hana-portfolio-be-services-sit:1.0.5 \
+            -f Dockerfile/Dockerfile.hana-portfolio \
             .
           mkdir -p portfolio_be_image
-          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.2
+          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.5
 
       - name: Load Docker Image Notifications
         env:
@@ -118,7 +146,7 @@ jobs:
           password: ${{ secrets.DOCKER_PAT }}
 
       - name: Push Docker Image to Docker Hub
-        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.2
+        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.5
 
       - name: Status Notifications
         if: always()

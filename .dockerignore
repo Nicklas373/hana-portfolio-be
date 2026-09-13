@@ -1,0 +1,7 @@
+.github
+.vscode
+coverage
+Dockerfile
+module
+node_modules
+README.md

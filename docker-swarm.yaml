@@ -1,0 +1,255 @@
+services:
+  hana-traefik-services:
+    image: traefik:latest
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.hana-traefik-services.rule=Host(`traefik.hana-ci`)"
+        - "traefik.http.routers.hana-traefik-services.service=api@internal"
+        - "traefik.http.routers.hana-traefik-services.entrypoints=web"
+        - "traefik.http.routers.hana-traefik-services.tls=false"
+        - "traefik.http.routers.hana-traefik-services.middlewares=admin"
+        - "traefik.http.services.hana-traefik-services.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.admin.basicauth.removeheader=true"
+        - "traefik.http.middlewares.admin.basicauth.users=eureka:$$apr1$$6hp9fsug$$JQO0i/WjIKCK2jknVaTi90"
+      placement:
+        constraints:
+          - node.role == manager
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 60s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        max_failure_ratio: 1
+        order: stop-first
+      update_config:
+        failure_action: "rollback"
+        delay: 10s
+        max_failure_ratio: 1
+        parallelism: 1
+        order: stop-first
+    command:
+      - --log.level=INFO
+      - --accesslog=true
+      - --accesslog.filepath=./traefik.log
+      - --accesslog.bufferingsize=100
+      - --api
+      - --entrypoints.web.address=:80
+      - --entryPoints.websecure.forwardedHeaders.trustedIPs=10.0.0.0/24,172.64.0.0/13
+      - --ping
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.swarm=true
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    dns_search:
+      - .
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - hana-network
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  hana-portfolio-db-sit-services:
+    image: postgres:18.4
+    deploy:
+      labels:
+        - "traefik.enable=false"
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 15s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        max_failure_ratio: 1
+        order: start-first
+      update_config:
+        failure_action: "rollback"
+        delay: 10s
+        max_failure_ratio: 1
+        parallelism: 1
+        order: start-first
+    environment:
+      POSTGRES_DB: "postgres"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    secrets:
+      - hana_portfolio_db_password
+    entrypoint:
+      [
+        "/bin/sh",
+        "-c",
+        "export POSTGRES_PASSWORD=$$(cat /run/secrets/hana_portfolio_db_password) && export POSTGRES_USER=kaori && exec docker-entrypoint.sh postgres",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -h localhost -p 5432 -d hana_portfolio -U kaori || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hana-network
+    ports:
+      - "5432:5432"
+    volumes:
+      - "hana-portfolio-db-sit-services:/var/lib/postgresql/data"
+      - "./module/instance/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh"
+      - "./module/db:/backup"
+  hana-portfolio-be-sit-services:
+    image: nicklas373/hana-portfolio-be-services-sit:1.0.5
+    secrets:
+      - hana_portfolio_api_key
+      - hana_portfolio_db_password
+      - hana_portfolio_redis_password
+      - hana_portfolio_turnstile_secret
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.hana-portfolio-be-services.rule=Host(`portfolio-api.sit`)"
+        - "traefik.http.routers.hana-portfolio-be-services.service=hana-portfolio-be-services@swarm"
+        - "traefik.http.routers.hana-portfolio-be-services.entrypoints=web"
+        - "traefik.http.routers.hana-portfolio-be-services.tls=false"
+        - "traefik.http.services.hana-portfolio-be-services.loadbalancer.server.scheme=http"
+        - "traefik.http.services.hana-portfolio-be-services.loadbalancer.server.port=3000"
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        max_failure_ratio: 1
+        order: start-first
+      update_config:
+        failure_action: "rollback"
+        delay: 10s
+        max_failure_ratio: 1
+        parallelism: 1
+        order: start-first
+    depends_on:
+      - hana-portfolio-redis-sit-services
+      - hana-portfolio-db-sit-services
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    dns_search:
+      - .
+    networks:
+      - hana-network
+    volumes:
+      - "./.env:/app/.env:ro"
+  hana-portfolio-redis-sit-services:
+    image: redis:8.6.1-alpine
+    deploy:
+      labels:
+        - "traefik.enable=false"
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 15s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        max_failure_ratio: 1
+        order: start-first
+      update_config:
+        failure_action: "rollback"
+        delay: 10s
+        max_failure_ratio: 1
+        parallelism: 1
+        order: start-first
+    secrets:
+      - hana_portfolio_redis_password
+    command:
+      - /bin/sh
+      - -c
+      - |
+        REDIS_PASSWORD="$$(cat /run/secrets/hana_portfolio_redis_password)"
+        exec redis-server /usr/local/etc/redis/redis.conf --requirepass "$$REDIS_PASSWORD"
+    volumes:
+      - hana-portfolio-redis-sit-services:/data
+      - ./module/redis/config.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'redis-cli -a "$$(cat /run/secrets/hana_portfolio_redis_password)" ping | grep PONG',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - hana-network
+secrets:
+  hana_portfolio_api_key:
+    external: true
+  hana_portfolio_db_password:
+    external: true
+  hana_portfolio_redis_password:
+    external: true
+  hana_portfolio_turnstile_secret:
+    external: true
+networks:
+  hana-network:
+    external: true
+    name: hana-network
+volumes:
+  hana-portfolio-db-sit-services:
+    driver: local
+  hana-portfolio-redis-sit-services:
+    driver: local

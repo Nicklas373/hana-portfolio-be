@@ -86,8 +86,37 @@ git clone https://github.com/Nicklas373/hana-portfolio-be.git hana-portfolio-be
 - Initiate docker compose (Make sure on root directory from this project):
   -- Applicable for frontend and backend
 
-```bash
-docker compose up -d
+- Set credentials
+
+```bash (Linux)
+  echo "mySecretApi" | sudo docker secret create hana_portfolio_api_key -
+  echo "MySecurePassword" | sudo docker secret create hana_portfolio_db_password -
+  echo "MySecurePassword" | sudo docker secret create hana_portfolio_redis_password -
+  echo "1x0000000000000000000000000000000AA" | sudo docker secret create hana_portfolio_turnstile_secret -
+```
+
+```bash (Windows)
+  # Initiate from powershell
+  [System.IO.File]::WriteAllBytes("$env:TEMP\secretApi",[System.Text.Encoding]::UTF8.GetBytes("mySecretApi"))
+  [System.IO.File]::WriteAllBytes("$env:TEMP\redis-password",[System.Text.Encoding]::UTF8.GetBytes("MySecurePassword"))
+  [System.IO.File]::WriteAllBytes("$env:TEMP\db-password",[System.Text.Encoding]::UTF8.GetBytes("MySecurePassword"))
+  [System.IO.File]::WriteAllBytes("$env:TEMP\turnstile-password",[System.Text.Encoding]::UTF8.GetBytes("1x0000000000000000000000000000000AA"))
+
+  # Import secret to docker
+  cmd /c "set /p =mySecretApi<nul" | docker secret create hana_portfolio_api_key -
+  cmd /c "set /p =MySecurePassword<nul" | docker secret create hana_portfolio_db_password -
+  cmd /c "set /p =MySecurePassword<nul" | docker secret create hana_portfolio_redis_password -
+  cmd /c "set /p =1x0000000000000000000000000000000AA<nul" | docker secret create hana_portfolio_turnstile_secret -
+```
+
+```bash (compose)
+  docker compose up -d
+```
+
+```bash (swarm)
+  docker swarm init
+  docker network create --driver=overlay --attachable hana-network
+  docker stack deploy -c docker-swarm.yaml hana_portfolio
 ```
 
 ## Project Structure
