@@ -93,7 +93,7 @@ jobs:
         run: |
           docker build \
             -t nicklas373/hana-portfolio-be-services-sit:1.0.5 \
-            -f Dockerfile/Dockerfile.hana-portfolio \
+            -f Dockerfile/Dockerfile.hana-portfolio.sit \
             .
           mkdir -p portfolio_be_image
           docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.5
