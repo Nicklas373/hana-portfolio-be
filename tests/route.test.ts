@@ -38,6 +38,7 @@ import {
 import { contact } from "../src/constant/contact";
 import { experience, experienceList } from "../src/constant/experience";
 import { NextFunction } from "express";
+import { config } from "../src/lib/config";
 
 const mockContactData: contactMap[] = contact;
 const mockExperienceData: experienceMap[] = experience;
@@ -53,8 +54,8 @@ describe(`GET /api/v1/contact`, () => {
     vi.mocked(getContact).mockResolvedValue(mockContactData);
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/contact`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/contact`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -71,8 +72,8 @@ describe(`GET /api/v1/contact`, () => {
     vi.mocked(getContact).mockRejectedValue(new Error("Internal server error"));
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/contact`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/contact`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(500);
   });
@@ -87,8 +88,8 @@ describe(`GET /api/v1/experience`, () => {
     vi.mocked(getExperience).mockResolvedValue(mockExperienceData);
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/experience`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/experience`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -110,8 +111,8 @@ describe(`GET /api/v1/experience`, () => {
     );
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/experience`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/experience`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(500);
   });
@@ -126,8 +127,8 @@ describe(`GET /api/v1/experience/list`, () => {
     vi.mocked(getExperienceList).mockResolvedValue(mockExperienceListData);
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=myCompany`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/experience/list?company=myCompany`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -146,8 +147,8 @@ describe(`GET /api/v1/experience/list`, () => {
     );
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/experience/list?company=`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("Missing required parameters");
@@ -159,8 +160,8 @@ describe(`GET /api/v1/experience/list`, () => {
     );
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=a&company=b`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/experience/list?company=a&company=b`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(400);
 
@@ -173,8 +174,8 @@ describe(`GET /api/v1/experience/list`, () => {
     );
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/experience/list?company=myCompany`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/experience/list?company=myCompany`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(500);
   });
@@ -189,8 +190,8 @@ describe(`GET /api/v1/project`, () => {
     vi.mocked(getProject).mockResolvedValue(mockProjectData);
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/project`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/project`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -209,8 +210,8 @@ describe(`GET /api/v1/project`, () => {
     vi.mocked(getProject).mockRejectedValue(new Error("Internal server error"));
 
     const response = await request(app)
-      .get(`${process.env.BASE_URL}/api/v1/project`)
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .get(`${config.app.baseUrl}/api/v1/project`)
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(500);
   });
@@ -238,9 +239,9 @@ describe(`POST /api/v1/contact`, () => {
     vi.mocked(insertContact).mockResolvedValue([mockContactInsertPayload]);
 
     const response = await request(app)
-      .post(`${process.env.BASE_URL}/api/v1/contact`)
+      .post(`${config.app.baseUrl}/api/v1/contact`)
       .send(mockContactData[0])
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
@@ -264,9 +265,9 @@ describe(`POST /api/v1/contact`, () => {
     );
 
     const response = await request(app)
-      .post(`${process.env.BASE_URL}/api/v1/contact`)
+      .post(`${config.app.baseUrl}/api/v1/contact`)
       .send(mockContactData[0])
-      .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
+      .set("Authorization", `x-hana-key ${config.app.apiKey}`);
 
     expect(response.status).toBe(500);
   });

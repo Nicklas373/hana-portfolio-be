@@ -1,21 +1,22 @@
 import Redis from "ioredis";
+import { config } from "../config";
 
 let redisInstance: Redis | null = null;
 
 const initRedis = (): Redis => {
   if (redisInstance) return redisInstance;
 
-  const port = Number(process.env.REDIS_PORT);
+  const port = Number(config.redis.port);
   if (isNaN(port)) {
     console.error("hana-portfolio-redis is invalid");
     process.exit(1);
   }
 
   redisInstance = new Redis({
-    host: process.env.REDIS_HOST,
+    host: config.redis.host,
     port: port,
-    password: process.env.REDIS_PASSWORD,
-    db: Number(process.env.REDIS_DB),
+    password: config.redis.password,
+    db: Number(config.redis.db),
 
     retryStrategy: (times: number) => {
       const delay = Math.min(times * 200, 4000);

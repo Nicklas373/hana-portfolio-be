@@ -9,6 +9,7 @@ import {
   APP_UNEXPECTED_HEADER,
   APP_VALIDATION_AUTHORIZATION,
 } from "../constant/app";
+import { config } from "../lib/config";
 
 export function middleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -53,7 +54,7 @@ export function middleware(req: Request, res: Response, next: NextFunction) {
     );
   }
 
-  const secret = process.env.API_KEY;
+  const secret = config.app.apiKey;
 
   if (token !== secret) {
     return next(

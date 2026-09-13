@@ -14,10 +14,16 @@ import pinoHttp from "pino-http";
 import { logger } from "./lib/pino/config";
 import { nvErrorWrapper } from "./lib/wrapper/errorWrapper";
 import { errorFormatter } from "./lib/helper";
+import { config } from "./lib/config";
+import {
+  APP_REQUEST_ERROR,
+  APP_REQUEST_NOT_FOUND,
+  APP_UNEXPECTED_ERROR,
+} from "./constant/app";
 
 // Init express JS
 const app = express();
-const baseUrl = process.env.BASE_URL;
+const baseUrl = config.app.baseUrl;
 
 // Disable some headers
 app.disable("x-powered-by");
@@ -26,7 +32,7 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: process.env.CORS_ORIGINS?.split(",") || [],
+    origin: config.app.corsOrigins?.split(",") || [],
     methods: ["GET", "POST"],
     allowedHeaders: ["Authorization", "Content-Type"],
     credentials: true,
@@ -78,6 +84,27 @@ app.get(`${baseUrl}/api/v1/health`, (_req, res) => {
     error: null,
   });
 });
+app.use((req: Request, res: Response) => {
+  req.log.error(
+    {
+      nvErrorWrapper: {
+        success: false,
+        status: 404,
+        message: APP_UNEXPECTED_ERROR,
+        data: [],
+        error: APP_REQUEST_NOT_FOUND,
+      },
+    },
+    APP_REQUEST_ERROR,
+  );
+  return res.status(404).json({
+    success: false,
+    status: 404,
+    message: "Route not found",
+    data: [],
+    error: null,
+  });
+});
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
   if (error instanceof nvErrorWrapper) {
@@ -91,7 +118,7 @@ app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
           error: errorFormatter(error.error),
         },
       },
-      "Request Error",
+      APP_REQUEST_ERROR,
     );
     return res.status(error.status).json({
       success: false,
@@ -106,12 +133,12 @@ app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
       nvErrorWrapper: {
         success: false,
         status: 500,
-        message: "Unexpected Error",
+        message: APP_UNEXPECTED_ERROR,
         data: [],
         error: errorFormatter(error),
       },
     },
-    "Request Error",
+    APP_REQUEST_ERROR,
   );
   return res.status(500).json(errorFormatter(error));
 });

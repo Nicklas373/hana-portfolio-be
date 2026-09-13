@@ -1,12 +1,14 @@
 import pg from "pg";
+import { config } from "./config";
+
 const { Pool } = pg;
 
 export const portfolioPool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
+  user: config.database.user,
+  host: config.database.host,
+  database: config.database.name,
+  password: config.database.password,
+  port: Number(config.database.port),
   max: 10,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 15_000,

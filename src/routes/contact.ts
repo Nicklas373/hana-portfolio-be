@@ -12,6 +12,7 @@ import {
   APP_VALIDATION_MISSING,
   APP_VAR_MESSAGE_TOO_LONG,
 } from "../constant/app";
+import { config } from "../lib/config";
 
 const router = Router();
 
@@ -89,13 +90,13 @@ router.post("/", middleware, async (req, res, next) => {
   }
 
   // Validate cloudflare token
-  const verifyResponse = await fetch(`${process.env.TURNSTILE_VERIFY_URL}`, {
+  const verifyResponse = await fetch(`${config.turnstile.verifyUrl}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
-      secret: process.env.TURNSTILE_SECRET_KEY!,
+      secret: config.turnstile.secretKey!,
       response: turnstileToken,
     }),
   });

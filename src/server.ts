@@ -1,28 +1,9 @@
-import dotenv from "dotenv";
-import path from "path";
-import packageJson from "../package.json";
-
-const isProd = process.env.NODE_ENV == "production";
-const envPath = isProd
-  ? [path.resolve(process.cwd(), ".env.prod")]
-  : [path.resolve(process.cwd(), ".env.sit")];
-
-// Initialize environment
-dotenv.config();
-dotenv.config({
-  path: envPath,
-  override: true,
-});
-
-// Import all route
 import app from "./app";
+import packageJson from "../package.json";
+import { config } from "./lib/config";
 
-// Define app port
-const appPort = process.env.APP_PORT;
-
-// Start Express JS
-app.listen(appPort, () => {
+app.listen(config.app.port, () => {
   console.log(
-    `${packageJson.name} v${packageJson.version} running on port ${appPort}`,
+    `${packageJson.name} v${packageJson.version} running on port ${config.app.port}`,
   );
 });
