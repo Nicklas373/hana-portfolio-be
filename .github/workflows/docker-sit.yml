@@ -27,7 +27,7 @@ jobs:
             -e MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
             -e MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
             -v "$GITHUB_WORKSPACE:/workspace" \
-            minio/mc:latest \
+            quay.io/minio/minio:latest \
             sh -c '
               mc alias set minio \
                 "$MINIO_ENDPOINT" \
