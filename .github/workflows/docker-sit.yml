@@ -34,12 +34,12 @@ jobs:
                 "$MINIO_ENDPOINT" \
                 "$MINIO_ACCESS_KEY" \
                 "$MINIO_SECRET_KEY"
-      
+
               mc cp \
-                minio/hana-secrets/portfolio/.env.sit \
+                minio/hana-ci-env/portfolio-api/.env.sit \
                 /workspace/.env
             '
-      
+
           chmod 600 .env
 
       - name: Setup Node.js
