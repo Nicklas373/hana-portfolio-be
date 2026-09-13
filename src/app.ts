@@ -1,6 +1,6 @@
 import cors from "cors";
 import crypto from "crypto";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import contact from "./routes/contact";
 import experience from "./routes/experience";
 import list from "./routes/experience";
@@ -9,12 +9,18 @@ import {
   crudRateLimiter,
   globalRequestRateLimiter,
 } from "./middleware/rateLimiter";
+import pino from "pino";
 import pinoHttp from "pino-http";
 import { logger } from "./lib/pino/config";
+import { nvErrorWrapper } from "./lib/wrapper/errorWrapper";
+import { errorFormatter } from "./lib/helper";
 
 // Init express JS
 const app = express();
 const baseUrl = process.env.BASE_URL;
+
+// Disable some headers
+app.disable("x-powered-by");
 
 // Init app configuration
 app.set("trust proxy", 1);
@@ -23,16 +29,39 @@ app.use(
     origin: process.env.CORS_ORIGINS?.split(",") || [],
     methods: ["GET", "POST"],
     allowedHeaders: ["Authorization", "Content-Type"],
+    credentials: true,
   }),
 );
 app.use(express.json());
 app.use(
   pinoHttp({
-    logger,
     autoLogging: {
-      ignore: (req) => req.url === "/api/v1/health",
+      ignore: (req) => req.url === `${baseUrl}/api/v1/health`,
     },
-    genReqId: (req) => req.headers["x-request-id"] || crypto.randomUUID(),
+    customLogLevel: (_req, res) => {
+      if (res.statusCode >= 500) {
+        return "error";
+      }
+      if (res.statusCode >= 400) {
+        return "warn";
+      }
+      return "silent";
+    },
+    genReqId: (req) => req.headers["x-request-id"] ?? crypto.randomUUID(),
+    logger,
+    serializers: {
+      req: pino.stdSerializers.wrapRequestSerializer((req) => ({
+        id: req.raw.id,
+        url: req.raw.url,
+        method: req.raw.method,
+        param: req.params,
+        query: req.query,
+      })),
+      res: pino.stdSerializers.wrapResponseSerializer((res) => ({
+        status: res.raw?.statusCode ?? 0,
+      })),
+      err: pino.stdSerializers.err,
+    },
   }),
 );
 
@@ -41,13 +70,50 @@ app.use(`${baseUrl}/api/v1/contact`, crudRateLimiter, contact);
 app.use(`${baseUrl}/api/v1/experience`, globalRequestRateLimiter, experience);
 app.use(`${baseUrl}/api/v1/experience/list`, globalRequestRateLimiter, list);
 app.use(`${baseUrl}/api/v1/project`, globalRequestRateLimiter, projects);
-app.get(`${baseUrl}/api/v1/health`, (req, res) => {
+app.get(`${baseUrl}/api/v1/health`, (_req, res) => {
   return res.status(200).json({
     success: true,
     message: "Healthy upstream",
     data: [],
     error: null,
   });
+});
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
+  if (error instanceof nvErrorWrapper) {
+    req.log.warn(
+      {
+        nvErrorWrapper: {
+          success: false,
+          status: error.status,
+          message: errorFormatter(error.message),
+          data: [],
+          error: errorFormatter(error.error),
+        },
+      },
+      "Request Error",
+    );
+    return res.status(error.status).json({
+      success: false,
+      status: error.status,
+      message: errorFormatter(error.message),
+      data: [],
+      error: errorFormatter(error.error),
+    });
+  }
+  req.log.error(
+    {
+      nvErrorWrapper: {
+        success: false,
+        status: 500,
+        message: "Unexpected Error",
+        data: [],
+        error: errorFormatter(error),
+      },
+    },
+    "Request Error",
+  );
+  return res.status(500).json(errorFormatter(error));
 });
 
 export default app;

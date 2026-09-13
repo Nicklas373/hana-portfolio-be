@@ -12,6 +12,7 @@ export const logger = pino({
     ],
     remove: true,
   },
+  timestamp: pino.stdTimeFunctions.isoTime,
   transport: isDev
     ? {
         target: "pino-pretty",
