@@ -1,11 +1,21 @@
 import { Router } from "express";
 import { getContact, insertContact } from "../lib/model/portfolio";
 import { middleware } from "../middleware/middleware";
-import { emailFormatter, errorFormatter } from "../lib/helper";
+import * as z from "zod";
+import { charWithDigitSchema } from "../lib/zod/schema";
+import { nvErrorWrapper } from "../lib/wrapper/errorWrapper";
+import {
+  APP_INVALID_EMAIL,
+  APP_INVALID_FULLNAME,
+  APP_INVALID_TOKEN,
+  APP_VALIDATION_BUSINESS,
+  APP_VALIDATION_MISSING,
+  APP_VAR_MESSAGE_TOO_LONG,
+} from "../constant/app";
 
 const router = Router();
 
-router.get("/", middleware, async (req, res) => {
+router.get("/", middleware, async (req, res, next) => {
   try {
     const contactData = await getContact();
 
@@ -18,55 +28,64 @@ router.get("/", middleware, async (req, res) => {
       error: null,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      data: {
-        contact: null,
-      },
-      error: errorFormatter(error),
-    });
+    next(error);
   }
 });
 
-router.post("/", middleware, async (req, res) => {
+router.post("/", middleware, async (req, res, next) => {
   const body = req.body || [];
   const { fullname, email, message, turnstileToken } = body;
 
   // Validate request body parameter
   if (!fullname || !email || !message || !turnstileToken) {
-    return res.status(400).json({
-      success: false,
-      message: "Bad Request",
-      data: {
-        contact: null,
-      },
-      error: "Missing some of body parameters",
-    });
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_VALIDATION_MISSING,
+      ),
+    );
+  }
+
+  // Validate fullname
+  if (charWithDigitSchema(50).safeParse(fullname).success === false) {
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_INVALID_FULLNAME,
+      ),
+    );
   }
 
   // Validate email format
-  if (!emailFormatter(email)) {
-    return res.status(400).json({
-      success: false,
-      message: "Bad Request",
-      data: {
-        contact: null,
-      },
-      error: "Invalid email",
-    });
+  if (z.email().safeParse(email).success === false) {
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_INVALID_EMAIL,
+      ),
+    );
   }
 
   // Validate maximum message characters
-  if (message.length > 500) {
-    return res.status(400).json({
-      success: false,
-      message: "Bad Request",
-      data: {
-        contact: null,
-      },
-      error: "Message too long",
-    });
+  if (charWithDigitSchema(500).safeParse(message).success === false) {
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_VAR_MESSAGE_TOO_LONG,
+      ),
+    );
   }
 
   // Validate cloudflare token
@@ -83,14 +102,15 @@ router.post("/", middleware, async (req, res) => {
 
   const verifyData = await verifyResponse.json();
   if (!verifyData.success) {
-    return res.status(400).json({
-      success: false,
-      message: "Bad Request",
-      data: {
-        contact: null,
-      },
-      error: "Invalid token",
-    });
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_INVALID_TOKEN,
+      ),
+    );
   }
 
   try {
@@ -105,14 +125,7 @@ router.post("/", middleware, async (req, res) => {
       error: null,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      data: {
-        contact: null,
-      },
-      error: errorFormatter(error),
-    });
+    next(error);
   }
 });
 

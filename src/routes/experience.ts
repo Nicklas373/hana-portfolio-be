@@ -1,11 +1,18 @@
 import { Router } from "express";
 import { getExperience, getExperienceList } from "../lib/model/portfolio";
 import { middleware } from "../middleware/middleware";
-import { errorFormatter } from "../lib/helper";
+import { nvErrorWrapper } from "../lib/wrapper/errorWrapper";
+import {
+  APP_INVALID_COMPANY,
+  APP_VALIDATION_BUSINESS,
+  APP_VALIDATION_MISSING,
+  APP_VAR_COMPANY_TOO_LONG,
+} from "../constant/app";
+import { charWithDigitSchema } from "../lib/zod/schema";
 
 const router = Router();
 
-router.get("/", middleware, async (req, res) => {
+router.get("/", middleware, async (req, res, next) => {
   try {
     const experienceData = await getExperience();
 
@@ -18,40 +25,47 @@ router.get("/", middleware, async (req, res) => {
       error: null,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      data: {
-        experience: null,
-      },
-      error: errorFormatter(error),
-    });
+    next(error);
   }
 });
 
-router.get("/list", middleware, async (req, res) => {
+router.get("/list", middleware, async (req, res, next) => {
   const company = req.query.company;
 
   if (!company) {
-    return res.status(400).json({
-      success: false,
-      message: "Bad Request",
-      data: {
-        experienceList: null,
-      },
-      error: "Missing required parameters",
-    });
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_VALIDATION_MISSING,
+      ),
+    );
   }
 
   if (typeof company !== "string") {
-    return res.status(400).json({
-      success: false,
-      message: "Bad Request",
-      data: {
-        experienceList: null,
-      },
-      error: "Invalid data type for specified parameters",
-    });
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_INVALID_COMPANY,
+      ),
+    );
+  }
+
+  if (charWithDigitSchema(50).safeParse(company).success === false) {
+    return next(
+      new nvErrorWrapper(
+        false,
+        400,
+        APP_VALIDATION_BUSINESS,
+        [],
+        APP_VAR_COMPANY_TOO_LONG,
+      ),
+    );
   }
 
   try {
@@ -66,14 +80,7 @@ router.get("/list", middleware, async (req, res) => {
       error: null,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      data: {
-        experienceList: null,
-      },
-      error: errorFormatter(error),
-    });
+    next(error);
   }
 });
 
