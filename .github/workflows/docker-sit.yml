@@ -23,22 +23,23 @@ jobs:
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
           docker run --rm \
+            --entrypoint /bin/sh \
             -e MINIO_ENDPOINT="$MINIO_ENDPOINT" \
             -e MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
             -e MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
             -v "$GITHUB_WORKSPACE:/workspace" \
             pgsty/mc:latest \
-            sh -c '
+            -c '
               mc alias set minio \
                 "$MINIO_ENDPOINT" \
                 "$MINIO_ACCESS_KEY" \
                 "$MINIO_SECRET_KEY"
-
+      
               mc cp \
                 minio/hana-secrets/portfolio/.env.sit \
                 /workspace/.env
             '
-
+      
           chmod 600 .env
 
       - name: Setup Node.js
