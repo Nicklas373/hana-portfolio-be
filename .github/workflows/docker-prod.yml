@@ -14,31 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install MinIO Client
-        run: |
-          curl -fsSL \
-            https://dl.min.io/client/mc/release/linux-amd64/mc \
-            -o mc
-
-          chmod +x mc
-          sudo mv mc /usr/local/bin/mc
-
-      - name: Configure MinIO
+      - name: Download env from MinIO
         env:
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
-          mc alias set minio \
-            "$MINIO_ENDPOINT" \
-            "$MINIO_ACCESS_KEY" \
-            "$MINIO_SECRET_KEY"
+          docker run --rm \
+            -e MINIO_ENDPOINT="$MINIO_ENDPOINT" \
+            -e MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
+            -e MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            pgsty/mc:latest \
+            sh -c '
+              mc alias set minio \
+                "$MINIO_ENDPOINT" \
+                "$MINIO_ACCESS_KEY" \
+                "$MINIO_SECRET_KEY"
 
-      - name: Download env
-        run: |
-          rm .env && mc cp \
-            minio/hana-secrets/portfolio/.env.sit \
-            .env
+              mc cp \
+                minio/hana-secrets/portfolio/.env.sit \
+                /workspace/.env
+            '
 
           chmod 600 .env
 

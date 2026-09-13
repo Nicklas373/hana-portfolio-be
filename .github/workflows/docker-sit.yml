@@ -27,7 +27,7 @@ jobs:
             -e MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
             -e MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
             -v "$GITHUB_WORKSPACE:/workspace" \
-            pgsty/minio:latest \
+            pgsty/mc:latest \
             sh -c '
               mc alias set minio \
                 "$MINIO_ENDPOINT" \
@@ -40,7 +40,7 @@ jobs:
             '
 
           chmod 600 .env
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
