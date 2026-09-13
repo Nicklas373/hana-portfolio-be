@@ -1,9 +1,18 @@
 import dotenv from "dotenv";
+import path from "path";
 import packageJson from "../package.json";
+
+const isProd = process.env.NODE_ENV == "production";
+const envPath = isProd
+  ? [path.resolve(process.cwd(), ".env.prod")]
+  : [path.resolve(process.cwd(), ".env.sit")];
 
 // Initialize environment
 dotenv.config();
-dotenv.config({ path: `.env.local`, override: true });
+dotenv.config({
+  path: envPath,
+  override: true,
+});
 
 // Import all route
 import app from "./app";

@@ -30,7 +30,7 @@ const createRateLimiter = (options: {
     message: {
       success: false,
       message: options.message,
-      data: null,
+      data: [],
       error: "Rate limit exceeded",
     },
 
