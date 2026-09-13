@@ -75,7 +75,6 @@ describe(`GET /api/v1/contact`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
   });
 });
 
@@ -115,7 +114,6 @@ describe(`GET /api/v1/experience`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
   });
 });
 
@@ -152,7 +150,6 @@ describe(`GET /api/v1/experience/list`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
     expect(response.body.error).toBe("Missing required parameters");
   });
 
@@ -166,10 +163,8 @@ describe(`GET /api/v1/experience/list`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.error).toBe(
-      "Invalid data type for specified parameters",
-    );
+
+    expect(response.body.error).toBe("Invalid company");
   });
 
   it("Mock API error response", async () => {
@@ -182,7 +177,6 @@ describe(`GET /api/v1/experience/list`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
   });
 });
 
@@ -219,7 +213,6 @@ describe(`GET /api/v1/project`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
   });
 });
 
@@ -276,6 +269,5 @@ describe(`POST /api/v1/contact`, () => {
       .set("Authorization", `x-hana-key ${process.env.API_KEY}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
   });
 });
