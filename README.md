@@ -87,15 +87,18 @@ git clone https://github.com/Nicklas373/hana-portfolio-be.git hana-portfolio-be
   -- Applicable for frontend and backend
 
 - Set credentials
+  (On Linux)
 
-```bash (Linux)
+```bash
   echo "mySecretApi" | sudo docker secret create hana_portfolio_api_key -
   echo "MySecurePassword" | sudo docker secret create hana_portfolio_db_password -
   echo "MySecurePassword" | sudo docker secret create hana_portfolio_redis_password -
   echo "1x0000000000000000000000000000000AA" | sudo docker secret create hana_portfolio_turnstile_secret -
 ```
 
-```bash (Windows)
+(On Windows)
+
+```bash
   # Initiate from powershell
   [System.IO.File]::WriteAllBytes("$env:TEMP\secretApi",[System.Text.Encoding]::UTF8.GetBytes("mySecretApi"))
   [System.IO.File]::WriteAllBytes("$env:TEMP\redis-password",[System.Text.Encoding]::UTF8.GetBytes("MySecurePassword"))
@@ -109,11 +112,15 @@ git clone https://github.com/Nicklas373/hana-portfolio-be.git hana-portfolio-be
   cmd /c "set /p =1x0000000000000000000000000000000AA<nul" | docker secret create hana_portfolio_turnstile_secret -
 ```
 
-```bash (compose)
+With docker compose
+
+```bash
   docker compose up -d
 ```
 
-```bash (swarm)
+With docker swarm
+
+```bash
   docker swarm init
   docker network create --driver=overlay --attachable hana-network
   docker stack deploy -c docker-swarm.yaml hana_portfolio
