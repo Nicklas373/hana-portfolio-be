@@ -182,6 +182,61 @@ services:
       - hana-network
     volumes:
       - "./.env:/app/.env:ro"
+  hana-portfolio-fe-sit-services:
+    image: nicklas373/hana-portfolio-fe-services-sit:1.0.5
+    secrets:
+      - hana_portfolio_api_key
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.hana-portfolio-fe-services.rule=Host(`portfolio.sit`)"
+        - "traefik.http.routers.hana-portfolio-fe-services.service=hana-portfolio-fe-services@swarm"
+        - "traefik.http.routers.hana-portfolio-fe-services.entrypoints=web"
+        - "traefik.http.routers.hana-portfolio-fe-services.tls=false"
+        - "traefik.http.routers.hana-portfolio-fe.middlewares=redirect-to-new-page"
+        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.regex=^http://portfolio\\.sit/$$"
+        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.replacement=http://portfolio.sit/dickyherlambang/$$1"
+        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.permanent=false"
+        - "traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.scheme=http"
+        - "traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.port=3000"
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        max_failure_ratio: 1
+        order: start-first
+      update_config:
+        failure_action: "rollback"
+        delay: 10s
+        max_failure_ratio: 1
+        parallelism: 1
+        order: start-first
+    depends_on:
+      - hana-portfolio-redis-sit-services
+      - hana-portfolio-db-sit-services
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    dns_search:
+      - .
+    networks:
+      - hana-network
+    volumes:
+      - "./.env.fe:/app/.env:ro"
   hana-portfolio-redis-sit-services:
     image: redis:8.6.1-alpine
     deploy:

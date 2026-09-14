@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Download env from MinIO
+      - name: Preparing env
         env:
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
@@ -55,23 +55,6 @@ jobs:
       - name: Run coverage
         run: npm run test:coverage
 
-      - name: NPM Build Package
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          CONTAINER_NAME: HANA_PORTFOLIO_BE_[SIT]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-backend/actions/workflows/docker-sit-env.yml
-          IMAGE_NAME: portfolio_backend_build_image
-          STATUS: Build HANA Portfolio Backend NPM Package
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          COMMIT_AUTHOR: ${{ github.actor }}
-          BRANCH: ${{ github.ref_name }}
-          ENV: SIT
-        run: |
-          chmod +x ./module/bash/docker-build-info.sh
-            bash ./module/bash/docker-build-info.sh
-
       - name: Docker Image Build Notification
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
@@ -97,23 +80,6 @@ jobs:
             .
           mkdir -p portfolio_be_image
           docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.5
-
-      - name: Load Docker Image Notifications
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          CONTAINER_NAME: HANA_PORTFOLIO_[SIT]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit-env.yml
-          IMAGE_NAME: portfolio_be_build_image
-          STATUS: Load HANA Portfolio Docker Image
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          COMMIT_AUTHOR: ${{ github.actor }}
-          BRANCH: ${{ github.ref_name }}
-          ENV: SIT
-        run: |
-          chmod +x ./module/bash/docker-build-info.sh
-          bash ./module/bash/docker-build-info.sh
 
       - name: Load Docker Images
         run: docker load -i portfolio_be_image/portfolio_be_image.tar
