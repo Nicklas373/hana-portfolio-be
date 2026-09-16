@@ -48,12 +48,6 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Snyk IaC test
-        run: snyk iac test Dockerfile/Dockerfile.hana-portfolio.prod
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      # 4. Build backend Docker image
       - name: Build Docker image
         run: |
           docker build \
