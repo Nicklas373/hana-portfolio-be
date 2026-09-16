@@ -51,7 +51,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -f Dockerfile/Dockerfile.hana-portfolio \
+            -f Dockerfile/Dockerfile.hana-portfolio.prod \
             -t hana-portfolio-be:snyk .
 
       - name: Snyk Container test
