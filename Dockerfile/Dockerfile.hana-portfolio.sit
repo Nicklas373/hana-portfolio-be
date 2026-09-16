@@ -1,5 +1,5 @@
-# Use node:lts-alpine3.24 as builder image
-FROM node:lts-alpine3.24 AS builder
+# Use node:26-alpine3.24 as builder image
+FROM node:26-alpine3.24 AS builder
 
 # Configure image maintainer
 LABEL maintainer="Nicklas373 <herlambangdicky5@gmail.com>"
@@ -21,8 +21,8 @@ COPY . .
 # Compiling node packages
 RUN npm run build
 
-# Use dhi.io/node:26-alpine3.24 as base image
-FROM node:lts-alpine3.24
+# Use node:26-alpine3.24 as base image
+FROM node:26-alpine3.24
 
 # Configure work directory
 WORKDIR /app
@@ -34,7 +34,6 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.env ./.env
 
 # Expose port
 EXPOSE 3000

@@ -194,7 +194,7 @@ services:
         - "traefik.http.routers.hana-portfolio-fe-services.entrypoints=web"
         - "traefik.http.routers.hana-portfolio-fe-services.tls=false"
         - "traefik.http.routers.hana-portfolio-fe.middlewares=redirect-to-new-page"
-        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.regex=^http://portfolio\\.sit/$$"
+        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.regex=^http://portfolio\\.sit/?$$"
         - "traefik.http.middlewares.redirect-to-new-page.redirectregex.replacement=http://portfolio.sit/dickyherlambang/$$1"
         - "traefik.http.middlewares.redirect-to-new-page.redirectregex.permanent=false"
         - "traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.scheme=http"

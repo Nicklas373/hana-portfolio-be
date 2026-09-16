@@ -58,7 +58,7 @@ jobs:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           CONTAINER_NAME: HANA_PORTFOLIO_BE_[PROD]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio/actions/workflows/docker-prod-env.yml
+          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-prod-env.yml
           IMAGE_NAME: portfolio_be_build_image
           STATUS: Build HANA Portfolio Backend Docker Image
           COMMIT_SHA: ${{ github.sha }}
