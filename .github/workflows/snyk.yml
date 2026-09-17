@@ -1,8 +1,6 @@
 name: Snyk Security
 
 on:
-  push:
-    branches: ["master"]
   pull_request:
     branches: ["master"]
   workflow_dispatch:
@@ -55,7 +53,8 @@ jobs:
             -t hana-portfolio-be:snyk .
 
       - name: Snyk Container test
-        run: snyk container test hana-portfolio-be:snyk
+        run: snyk container test hana-portfolio-be:snyk \
+          --file=Dockerfile/Dockerfile.hana-portfolio.prod
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
