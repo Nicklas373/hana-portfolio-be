@@ -140,7 +140,13 @@ app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
     },
     APP_REQUEST_ERROR,
   );
-  return res.status(500).json(errorFormatter(error));
+  return res.status(500).json({
+    success: false,
+    status: 500,
+    message: APP_UNEXPECTED_ERROR,
+    data: [],
+    error: errorFormatter(error),
+  });
 });
 
 export default app;
