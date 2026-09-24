@@ -129,7 +129,7 @@ services:
       - "./module/instance/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh"
       - "./module/db:/backup"
   hana-portfolio-be-sit-services:
-    image: nicklas373/hana-portfolio-be-services-sit:1.0.5
+    image: nicklas373/hana-portfolio-be-services-sit:1.0.6
     secrets:
       - hana_portfolio_api_key
       - hana_portfolio_db_password

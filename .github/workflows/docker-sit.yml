@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  portfolio:
+  build_image:
     runs-on: ubuntu-latest
 
     steps:
