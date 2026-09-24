@@ -1,6 +1,6 @@
 {
   "name": "hana-portfolio-api",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
@@ -17,7 +17,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
-    "ioredis": "^5.11.0",
+    "ioredis": "^6.0.0-beta.1",
     "jiti": "^2.7.0",
     "pg": "^8.21.0",
     "pino": "^10.3.1",
