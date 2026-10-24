@@ -1,7 +1,7 @@
 permissions:
   contents: read
 
-name: "HANA Portfolio Backend Services [SIT]"
+name: 'HANA Portfolio Backend Services [SIT]'
 
 on:
   workflow_dispatch:
@@ -73,11 +73,11 @@ jobs:
       - name: Build HANA Portfolio Backend Docker Image
         run: |
           docker build \
-            -t nicklas373/hana-portfolio-be-services-sit:1.0.5 \
+            -t nicklas373/hana-portfolio-be-services-sit:1.0.6 \
             -f Dockerfile/Dockerfile.hana-portfolio.sit \
             .
           mkdir -p portfolio_be_image
-          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.5
+          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-sit:1.0.6
 
       - name: Load Docker Images
         run: docker load -i portfolio_be_image/portfolio_be_image.tar
@@ -106,7 +106,7 @@ jobs:
           password: ${{ secrets.DOCKER_PAT }}
 
       - name: Push Docker Image to Docker Hub
-        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.5
+        run: docker push nicklas373/hana-portfolio-be-services-sit:1.0.6
 
       - name: Status Notifications
         if: always()
@@ -116,7 +116,7 @@ jobs:
           CONTAINER_NAME: HANA_PORTFOLIO_[SIT]
           WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-sit-env.yml
           IMAGE_NAME: portfolio_be_build_image
-          STATUS: "Build ${{ job.status }}"
+          STATUS: 'Build ${{ job.status }}'
           COMMIT_SHA: ${{ github.sha }}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.actor }}

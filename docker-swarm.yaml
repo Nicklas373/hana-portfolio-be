@@ -3,15 +3,15 @@ services:
     image: traefik:latest
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.hana-traefik-services.rule=Host(`traefik.hana-ci`)"
-        - "traefik.http.routers.hana-traefik-services.service=api@internal"
-        - "traefik.http.routers.hana-traefik-services.entrypoints=web"
-        - "traefik.http.routers.hana-traefik-services.tls=false"
-        - "traefik.http.routers.hana-traefik-services.middlewares=admin"
-        - "traefik.http.services.hana-traefik-services.loadbalancer.server.port=80"
-        - "traefik.http.middlewares.admin.basicauth.removeheader=true"
-        - "traefik.http.middlewares.admin.basicauth.users=eureka:$$apr1$$6hp9fsug$$JQO0i/WjIKCK2jknVaTi90"
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.hana-traefik-services.rule=Host(`traefik.hana-ci`)'
+        - 'traefik.http.routers.hana-traefik-services.service=api@internal'
+        - 'traefik.http.routers.hana-traefik-services.entrypoints=web'
+        - 'traefik.http.routers.hana-traefik-services.tls=false'
+        - 'traefik.http.routers.hana-traefik-services.middlewares=admin'
+        - 'traefik.http.services.hana-traefik-services.loadbalancer.server.port=80'
+        - 'traefik.http.middlewares.admin.basicauth.removeheader=true'
+        - 'traefik.http.middlewares.admin.basicauth.users=eureka:$$apr1$$6hp9fsug$$JQO0i/WjIKCK2jknVaTi90'
       placement:
         constraints:
           - node.role == manager
@@ -19,10 +19,10 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 256M
         reservations:
-          cpus: "0.25"
+          cpus: '0.25'
           memory: 128M
       restart_policy:
         condition: on-failure
@@ -36,7 +36,7 @@ services:
         max_failure_ratio: 1
         order: stop-first
       update_config:
-        failure_action: "rollback"
+        failure_action: 'rollback'
         delay: 10s
         max_failure_ratio: 1
         parallelism: 1
@@ -59,29 +59,29 @@ services:
     dns_search:
       - .
     healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      test: ['CMD', 'traefik', 'healthcheck', '--ping']
       interval: 30s
       timeout: 10s
       retries: 5
     networks:
       - hana-network
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   hana-portfolio-db-sit-services:
     image: postgres:18.4
     deploy:
       labels:
-        - "traefik.enable=false"
+        - 'traefik.enable=false'
       mode: replicated
       replicas: 1
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 256M
         reservations:
-          cpus: "0.25"
+          cpus: '0.25'
           memory: 128M
       restart_policy:
         condition: any
@@ -95,27 +95,27 @@ services:
         max_failure_ratio: 1
         order: start-first
       update_config:
-        failure_action: "rollback"
+        failure_action: 'rollback'
         delay: 10s
         max_failure_ratio: 1
         parallelism: 1
         order: start-first
     environment:
-      POSTGRES_DB: "postgres"
+      POSTGRES_DB: 'postgres'
       PGDATA: /var/lib/postgresql/data/pgdata
     secrets:
       - hana_portfolio_db_password
     entrypoint:
       [
-        "/bin/sh",
-        "-c",
-        "export POSTGRES_PASSWORD=$$(cat /run/secrets/hana_portfolio_db_password) && export POSTGRES_USER=kaori && exec docker-entrypoint.sh postgres",
+        '/bin/sh',
+        '-c',
+        'export POSTGRES_PASSWORD=$$(cat /run/secrets/hana_portfolio_db_password) && export POSTGRES_USER=kaori && exec docker-entrypoint.sh postgres',
       ]
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "pg_isready -h localhost -p 5432 -d hana_portfolio -U kaori || exit 1",
+          'CMD-SHELL',
+          'pg_isready -h localhost -p 5432 -d hana_portfolio -U kaori || exit 1',
         ]
       interval: 30s
       timeout: 10s
@@ -123,11 +123,11 @@ services:
     networks:
       - hana-network
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
-      - "hana-portfolio-db-sit-services:/var/lib/postgresql/data"
-      - "./module/instance/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh"
-      - "./module/db:/backup"
+      - 'hana-portfolio-db-sit-services:/var/lib/postgresql/data'
+      - './module/instance/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh'
+      - './module/db:/backup'
   hana-portfolio-be-sit-services:
     image: nicklas373/hana-portfolio-be-services-sit:1.0.6
     secrets:
@@ -137,21 +137,21 @@ services:
       - hana_portfolio_turnstile_secret
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.hana-portfolio-be-services.rule=Host(`portfolio-api.sit`)"
-        - "traefik.http.routers.hana-portfolio-be-services.service=hana-portfolio-be-services@swarm"
-        - "traefik.http.routers.hana-portfolio-be-services.entrypoints=web"
-        - "traefik.http.routers.hana-portfolio-be-services.tls=false"
-        - "traefik.http.services.hana-portfolio-be-services.loadbalancer.server.scheme=http"
-        - "traefik.http.services.hana-portfolio-be-services.loadbalancer.server.port=3000"
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.hana-portfolio-be-services.rule=Host(`portfolio-api.sit`)'
+        - 'traefik.http.routers.hana-portfolio-be-services.service=hana-portfolio-be-services@swarm'
+        - 'traefik.http.routers.hana-portfolio-be-services.entrypoints=web'
+        - 'traefik.http.routers.hana-portfolio-be-services.tls=false'
+        - 'traefik.http.services.hana-portfolio-be-services.loadbalancer.server.scheme=http'
+        - 'traefik.http.services.hana-portfolio-be-services.loadbalancer.server.port=3000'
       mode: replicated
       replicas: 1
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: '0.25'
           memory: 256M
       restart_policy:
         condition: any
@@ -165,7 +165,7 @@ services:
         max_failure_ratio: 1
         order: start-first
       update_config:
-        failure_action: "rollback"
+        failure_action: 'rollback'
         delay: 10s
         max_failure_ratio: 1
         parallelism: 1
@@ -181,32 +181,32 @@ services:
     networks:
       - hana-network
     volumes:
-      - "./.env:/app/.env:ro"
+      - './.env:/app/.env:ro'
   hana-portfolio-fe-sit-services:
-    image: nicklas373/hana-portfolio-fe-services-sit:1.0.5
+    image: nicklas373/hana-portfolio-fe-services-sit:1.0.6
     secrets:
       - hana_portfolio_api_key
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.hana-portfolio-fe-services.rule=Host(`portfolio.sit`)"
-        - "traefik.http.routers.hana-portfolio-fe-services.service=hana-portfolio-fe-services@swarm"
-        - "traefik.http.routers.hana-portfolio-fe-services.entrypoints=web"
-        - "traefik.http.routers.hana-portfolio-fe-services.tls=false"
-        - "traefik.http.routers.hana-portfolio-fe.middlewares=redirect-to-new-page"
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.hana-portfolio-fe-services.rule=Host(`portfolio.sit`)'
+        - 'traefik.http.routers.hana-portfolio-fe-services.service=hana-portfolio-fe-services@swarm'
+        - 'traefik.http.routers.hana-portfolio-fe-services.entrypoints=web'
+        - 'traefik.http.routers.hana-portfolio-fe-services.tls=false'
+        - 'traefik.http.routers.hana-portfolio-fe.middlewares=redirect-to-new-page'
         - "traefik.http.middlewares.redirect-to-new-page.redirectregex.regex=^http://portfolio\\.sit/?$$"
-        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.replacement=http://portfolio.sit/dickyherlambang/$$1"
-        - "traefik.http.middlewares.redirect-to-new-page.redirectregex.permanent=false"
-        - "traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.scheme=http"
-        - "traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.port=3000"
+        - 'traefik.http.middlewares.redirect-to-new-page.redirectregex.replacement=http://portfolio.sit/dickyherlambang/$$1'
+        - 'traefik.http.middlewares.redirect-to-new-page.redirectregex.permanent=false'
+        - 'traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.scheme=http'
+        - 'traefik.http.services.hana-portfolio-fe-services.loadbalancer.server.port=3000'
       mode: replicated
       replicas: 1
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: '0.25'
           memory: 256M
       restart_policy:
         condition: any
@@ -220,7 +220,7 @@ services:
         max_failure_ratio: 1
         order: start-first
       update_config:
-        failure_action: "rollback"
+        failure_action: 'rollback'
         delay: 10s
         max_failure_ratio: 1
         parallelism: 1
@@ -236,20 +236,20 @@ services:
     networks:
       - hana-network
     volumes:
-      - "./.env.fe:/app/.env:ro"
+      - './.env.fe:/app/.env:ro'
   hana-portfolio-redis-sit-services:
     image: redis:8.6.1-alpine
     deploy:
       labels:
-        - "traefik.enable=false"
+        - 'traefik.enable=false'
       mode: replicated
       replicas: 1
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 256M
         reservations:
-          cpus: "0.25"
+          cpus: '0.25'
           memory: 128M
       restart_policy:
         condition: any
@@ -263,7 +263,7 @@ services:
         max_failure_ratio: 1
         order: start-first
       update_config:
-        failure_action: "rollback"
+        failure_action: 'rollback'
         delay: 10s
         max_failure_ratio: 1
         parallelism: 1
@@ -282,7 +282,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          'CMD-SHELL',
           'redis-cli -a "$$(cat /run/secrets/hana_portfolio_redis_password)" ping | grep PONG',
         ]
       interval: 30s

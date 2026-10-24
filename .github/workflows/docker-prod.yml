@@ -1,16 +1,19 @@
+name: 'HANA Portfolio Backend Services [PROD]'
+
 permissions:
   contents: read
 
-name: "HANA Portfolio Backend Services [PROD]"
-
 on:
   workflow_dispatch:
+
+concurrency:
+  group: hana-portfolio-be-prod
+  cancel-in-progress: false
 
 jobs:
   security_check:
     name: Snyk Security Scan
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       security-events: write
@@ -35,65 +38,63 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Code test
-        run: snyk code test --sarif > snyk-code.sarif
+        run: snyk code test --sarif-file-output=snyk-code.sarif
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Open Source test
-        run: snyk test
+        run: snyk test --sarif-file-output=snyk-open-source.sarif
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build Docker image for scanning
         run: |
           docker build \
+            --pull \
             -f Dockerfile/Dockerfile.hana-portfolio.prod \
             -t hana-portfolio-be:snyk .
 
       - name: Snyk Container test
-        run: snyk container test hana-portfolio-be:snyk \
-          --file=Dockerfile/Dockerfile.hana-portfolio.prod
+        run: |
+          snyk container test hana-portfolio-be:snyk \
+            --file=Dockerfile/Dockerfile.hana-portfolio.prod \
+            --sarif-file-output=snyk-container.sarif
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload Snyk Code results
-        if: always()
+        if: always() && hashFiles('snyk-code.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk-code.sarif
+          category: snyk-code
+
+      - name: Upload Snyk Open Source results
+        if: always() && hashFiles('snyk-open-source.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-open-source.sarif
+          category: snyk-open-source
+
+      - name: Upload Snyk Container results
+        if: always() && hashFiles('snyk-container.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-container.sarif
+          category: snyk-container
 
   build_image:
+    name: Build and Push Production Image
+    needs: security_check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Download env from MinIO
-        env:
-          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
-          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
-          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
-        run: |
-          docker run --rm \
-            --entrypoint /bin/sh \
-            -e MINIO_ENDPOINT="$MINIO_ENDPOINT" \
-            -e MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
-            -e MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
-            -v "$GITHUB_WORKSPACE:/workspace" \
-            pgsty/mc:latest \
-            -c '
-              mc alias set minio \
-                "$MINIO_ENDPOINT" \
-                "$MINIO_ACCESS_KEY" \
-                "$MINIO_SECRET_KEY"
-
-              mc cp \
-                minio/hana-ci-env/portfolio-api/.env.prod \
-                /workspace/.env
-            '
-
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 26
@@ -108,51 +109,13 @@ jobs:
       - name: Run coverage
         run: npm run test:coverage
 
-      - name: Docker Image Build Notification
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          CONTAINER_NAME: HANA_PORTFOLIO_BE_[PROD]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-prod-env.yml
-          IMAGE_NAME: portfolio_be_build_image
-          STATUS: Build HANA Portfolio Backend Docker Image
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          COMMIT_AUTHOR: ${{ github.actor }}
-          BRANCH: ${{ github.ref_name }}
-          ENV: PROD
-        run: |
-          chmod +x ./module/bash/docker-build-info.sh
-            bash ./module/bash/docker-build-info.sh
-
       - name: Build HANA Portfolio Backend Docker Image
         run: |
           docker build \
-            -t nicklas373/hana-portfolio-be-services-prod:1.0.5 \
+            --pull \
+            -t nicklas373/hana-portfolio-be-services-prod:1.0.6 \
             -f Dockerfile/Dockerfile.hana-portfolio.prod \
             .
-          mkdir -p portfolio_be_image
-          docker save -o portfolio_be_image/portfolio_be_image.tar nicklas373/hana-portfolio-be-services-prod:1.0.5
-
-      - name: Load Docker Images
-        run: docker load -i portfolio_be_image/portfolio_be_image.tar
-
-      - name: Push Docker Image Notifications
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          CONTAINER_NAME: HANA_PORTFOLIO_[PROD]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-prod-env.yml
-          IMAGE_NAME: portfolio_be_build_image
-          STATUS: Push HANA Portfolio Docker Image
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          COMMIT_AUTHOR: ${{ github.actor }}
-          BRANCH: ${{ github.ref_name }}
-          ENV: PROD
-        run: |
-          chmod +x ./module/bash/docker-build-info.sh
-          bash ./module/bash/docker-build-info.sh
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4
@@ -161,22 +124,4 @@ jobs:
           password: ${{ secrets.DOCKER_PAT }}
 
       - name: Push Docker Image to Docker Hub
-        run: docker push nicklas373/hana-portfolio-be-services-prod:1.0.5
-
-      - name: Status Notifications
-        if: always()
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          CONTAINER_NAME: HANA_PORTFOLIO_[PROD]
-          WORKFLOW_URL: https://github.com/Nicklas373/hana-portfolio-be/actions/workflows/docker-prod-env.yml
-          IMAGE_NAME: portfolio_be_build_image
-          STATUS: "Build ${{ job.status }}"
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          COMMIT_AUTHOR: ${{ github.actor }}
-          BRANCH: ${{ github.ref_name }}
-          ENV: PROD
-        run: |
-          chmod +x ./module/bash/docker-build-info.sh
-          bash ./module/bash/docker-build-info.sh
+        run: docker push nicklas373/hana-portfolio-be-services-prod:1.0.6
