@@ -108,6 +108,14 @@ app.use((req: Request, res: Response) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
   if (error instanceof nvErrorWrapper) {
+    const statusCode =
+      Number.isInteger(error.status) &&
+      error.status >= 400 &&
+      error.status <= 599
+        ? error.status
+        : 500;
+    const isClientError = statusCode < 500;
+
     req.log.warn(
       {
         nvErrorWrapper: {
@@ -120,12 +128,14 @@ app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
       },
       APP_REQUEST_ERROR,
     );
-    return res.status(error.status).json({
+    return res.status(statusCode).json({
       success: false,
-      status: error.status,
-      message: errorFormatter(error.message),
+      status: statusCode,
+      message: isClientError
+        ? errorFormatter(error.message)
+        : APP_UNEXPECTED_ERROR,
       data: [],
-      error: errorFormatter(error.error),
+      error: isClientError ? errorFormatter(error.error) : null,
     });
   }
   req.log.error(
